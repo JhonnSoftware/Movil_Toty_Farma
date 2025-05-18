@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
     Center(child: Text('Inicio', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
     //ClientesPage(),
     Center(child: Text('Clientes', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
-    Center(child: Text('Proveedores', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
+    ProveedoresPage(),
     Center(child: Text('Categorias', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
     Center(child: Text('Productos', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
     Center(child: Text('Usuarios', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
