@@ -21,7 +21,7 @@ class _HomePageState extends State<HomePage> {
     //ClientesPage(),
     ClientesPage(),
     ProveedoresPage(),
-    Center(child: Text('Categorias', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
+    CategoriasPage(),
     Center(child: Text('Productos', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
     Center(child: Text('Usuarios', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
     Center(child: Text('Flujo de caja', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),

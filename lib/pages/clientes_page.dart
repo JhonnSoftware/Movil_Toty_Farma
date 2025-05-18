@@ -30,16 +30,23 @@ class _ClientesPageState extends State<ClientesPage> {
               TextField(
                 controller: _nombreController,
                 decoration: const InputDecoration(labelText: 'Nombre'),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))
+                ],
               ),
               TextField(
                 controller: _apellidoController,
                 decoration: const InputDecoration(labelText: 'Apellido'),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))
+                ],
               ),
               TextField(
                 controller: _telefonoController,
                 keyboardType: TextInputType.number,
                 maxLength: 9,
-                decoration: const InputDecoration(labelText: 'Teléfono (9 dígitos)'),
+                decoration:
+                    const InputDecoration(labelText: 'Teléfono (9 dígitos)'),
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
               TextField(
@@ -50,7 +57,8 @@ class _ClientesPageState extends State<ClientesPage> {
                 controller: _dniController,
                 keyboardType: TextInputType.number,
                 maxLength: 8,
-                decoration: const InputDecoration(labelText: 'DNI (8 dígitos)'),
+                decoration:
+                    const InputDecoration(labelText: 'DNI (8 dígitos)'),
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
             ],
@@ -83,15 +91,39 @@ class _ClientesPageState extends State<ClientesPage> {
     );
   }
 
+  bool _soloLetras(String texto) {
+    final RegExp regex = RegExp(r'^[a-zA-Z\s]+$');
+    return regex.hasMatch(texto);
+  }
+
   bool _validarCampos() {
+    if (_nombreController.text.isEmpty ||
+        !_soloLetras(_nombreController.text)) {
+      _mostrarMensaje('El nombre solo debe contener letras.');
+      return false;
+    }
+
+    if (_apellidoController.text.isEmpty ||
+        !_soloLetras(_apellidoController.text)) {
+      _mostrarMensaje('El apellido solo debe contener letras.');
+      return false;
+    }
+
     if (_dniController.text.length != 8) {
       _mostrarMensaje('El DNI debe tener 8 dígitos.');
       return false;
     }
+
     if (_telefonoController.text.length != 9) {
       _mostrarMensaje('El teléfono debe tener 9 dígitos.');
       return false;
     }
+
+    if (_direccionController.text.isEmpty) {
+      _mostrarMensaje('La dirección no puede estar vacía.');
+      return false;
+    }
+
     return true;
   }
 
@@ -104,7 +136,8 @@ class _ClientesPageState extends State<ClientesPage> {
   }
 
   void _mostrarMensaje(String mensaje) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(mensaje)));
   }
 
   void _editarCliente(DocumentSnapshot cliente) {
@@ -124,16 +157,23 @@ class _ClientesPageState extends State<ClientesPage> {
               TextField(
                 controller: _nombreController,
                 decoration: const InputDecoration(labelText: 'Nombre'),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))
+                ],
               ),
               TextField(
                 controller: _apellidoController,
                 decoration: const InputDecoration(labelText: 'Apellido'),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))
+                ],
               ),
               TextField(
                 controller: _telefonoController,
                 keyboardType: TextInputType.number,
                 maxLength: 9,
-                decoration: const InputDecoration(labelText: 'Teléfono (9 dígitos)'),
+                decoration:
+                    const InputDecoration(labelText: 'Teléfono (9 dígitos)'),
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
               TextField(
@@ -144,7 +184,8 @@ class _ClientesPageState extends State<ClientesPage> {
                 controller: _dniController,
                 keyboardType: TextInputType.number,
                 maxLength: 8,
-                decoration: const InputDecoration(labelText: 'DNI (8 dígitos)'),
+                decoration:
+                    const InputDecoration(labelText: 'DNI (8 dígitos)'),
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
             ],
@@ -212,7 +253,8 @@ class _ClientesPageState extends State<ClientesPage> {
               var isSelected = _seleccionados.contains(cliente.id);
 
               return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: ListTile(
                   leading: Checkbox(
                     value: isSelected,
@@ -226,7 +268,8 @@ class _ClientesPageState extends State<ClientesPage> {
                       });
                     },
                   ),
-                  title: Text('${cliente['nombre']} ${cliente['apellido']}'),
+                  title: Text(
+                      '${cliente['nombre']} ${cliente['apellido']}'),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -241,7 +284,10 @@ class _ClientesPageState extends State<ClientesPage> {
                             activeColor: Colors.green,
                             inactiveThumbColor: Colors.red,
                             onChanged: (value) {
-                              _firestore.collection('clientes').doc(cliente.id).update({'estado': value});
+                              _firestore
+                                  .collection('clientes')
+                                  .doc(cliente.id)
+                                  .update({'estado': value});
                             },
                           ),
                           IconButton(
