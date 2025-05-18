@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "325469832093",
+    "project_id": "boticas-toty-farma",
+    "storage_bucket": "boticas-toty-farma.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:325469832093:android:3a131e1edb1b440549a574",
+        "android_client_info": {
+          "package_name": "com.example.boticas_toty_farma_02"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZhMJNjhLE4jqZ-kr71nVLBY8h8W2H3cA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
