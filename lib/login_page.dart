@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'home_page.dart'; // Asegúrate de que esta ruta esté correcta
 
 class LoginPage extends StatefulWidget {
   @override
@@ -25,7 +26,7 @@ class _LoginPageState extends State<LoginPage> {
           .get();
 
       if (result.docs.isNotEmpty) {
-        // Usuario encontrado, puedes ir a otra página (HomePage, Dashboard, etc.)
+        // Usuario encontrado
         final userData = result.docs.first.data() as Map<String, dynamic>;
         final String nombre = userData['name'];
 
@@ -33,8 +34,13 @@ class _LoginPageState extends State<LoginPage> {
           SnackBar(content: Text('Bienvenido, $nombre')),
         );
 
-        // Aquí podrías navegar a la pantalla principal:
-        // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage()));
+        // ✅ Navegar a HomePage
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(token: nombre),
+          ),
+        );
       } else {
         setState(() {
           _errorMessage = 'Email o contraseña incorrectos';
@@ -73,7 +79,10 @@ class _LoginPageState extends State<LoginPage> {
             if (_errorMessage.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Text(_errorMessage, style: TextStyle(color: Colors.red)),
+                child: Text(
+                  _errorMessage,
+                  style: TextStyle(color: Colors.red),
+                ),
               ),
           ],
         ),
