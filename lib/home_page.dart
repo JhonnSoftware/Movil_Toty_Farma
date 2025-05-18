@@ -19,7 +19,7 @@ class _HomePageState extends State<HomePage> {
   static List<Widget> _pages = <Widget>[
     Center(child: Text('Inicio', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
     //ClientesPage(),
-    Center(child: Text('Clientes', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
+    ClientesPage(),
     ProveedoresPage(),
     Center(child: Text('Categorias', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
     Center(child: Text('Productos', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
