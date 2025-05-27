@@ -3,6 +3,7 @@ import '../pages/clientes_page.dart';
 import '../pages/proveedores_page.dart';
 import '../pages/categorias_page.dart';
 import '../pages/productos_page.dart';
+import '../pages/tiendagps_page.dart';
 
 class HomePage extends StatefulWidget {
   final String? token;
@@ -29,6 +30,7 @@ class _HomePageState extends State<HomePage> {
     Center(child: Text('Historial Compras', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
     Center(child: Text('Registrar Venta', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
     Center(child: Text('Historial Ventas', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
+    TiendaGpsPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -172,6 +174,13 @@ class _HomePageState extends State<HomePage> {
                     selected: _selectedIndex == 10,
                   ),
                 ],
+              ),
+
+              _drawerListTile(
+                icon: Icons.location_on,
+                title: 'Ubicación Tienda',
+                index: 11,
+                selected: _selectedIndex == 11,
               ),
 
               Divider(thickness: 1.2),
