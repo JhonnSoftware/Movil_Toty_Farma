@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home_page.dart';
 import 'register_page.dart';
+import 'usuario_menu_page.dart'; // Asegúrate de crear esta vista o importarla correctamente
 
 class LoginPage extends StatefulWidget {
   @override
@@ -41,10 +42,17 @@ class _LoginPageState extends State<LoginPage> {
           SnackBar(content: Text('Bienvenido, $nombre (Rol: $rol)')),
         );
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage(token: nombre)),
-        );
+        if (rol == 'admin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage(token: nombre)),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => UsuarioMenuPage(token: nombre)),
+          );
+        }
       } else {
         setState(() {
           _errorMessage = 'Email o contraseña incorrectos';

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'login_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -9,18 +10,34 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _apellidoController = TextEditingController();
+  final TextEditingController _dniController = TextEditingController();
+  final TextEditingController _telefonoController = TextEditingController();
+  final TextEditingController _direccionController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String _message = '';
 
   Future<void> _register() async {
-    final String name = _nameController.text.trim();
-    final String email = _emailController.text.trim();
-    final String password = _passwordController.text.trim();
+    final name = _nameController.text.trim();
+    final apellido = _apellidoController.text.trim();
+    final dni = _dniController.text.trim();
+    final telefono = _telefonoController.text.trim();
+    final direccion = _direccionController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+    if ([name, apellido, dni, telefono, direccion, email, password]
+        .any((element) => element.isEmpty)) {
       setState(() {
         _message = 'Por favor completa todos los campos';
+      });
+      return;
+    }
+
+    if (dni.length != 8 || telefono.length != 9) {
+      setState(() {
+        _message = 'DNI debe tener 8 dígitos y teléfono 9 dígitos';
       });
       return;
     }
@@ -40,9 +57,15 @@ class _RegisterPageState extends State<RegisterPage> {
 
       await FirebaseFirestore.instance.collection('usuarios').add({
         'name': name,
+        'apellido': apellido,
+        'dni': dni,
+        'telefono': telefono,
+        'direccion': direccion,
         'email': email,
         'password': password,
         'rol': 'usuario',
+        'estado': true, // ← CORREGIDO a booleano
+        'foto': '',
       });
 
       setState(() {
@@ -82,32 +105,61 @@ class _RegisterPageState extends State<RegisterPage> {
                     style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: fondo),
                   ),
                   SizedBox(height: 28),
-                  TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.person),
-                      labelText: 'Nombre completo',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                  _buildInputField(
+                    _nameController,
+                    Icons.person,
+                    'Nombre',
+                    keyboardType: TextInputType.name,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]')),
+                    ],
                   ),
-                  SizedBox(height: 16),
-                  TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.email),
-                      labelText: 'Correo electrónico',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                  _buildInputField(
+                    _apellidoController,
+                    Icons.person_outline,
+                    'Apellido',
+                    keyboardType: TextInputType.name,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]')),
+                    ],
                   ),
-                  SizedBox(height: 16),
-                  TextField(
-                    controller: _passwordController,
+                  _buildInputField(
+                    _dniController,
+                    Icons.badge,
+                    'DNI',
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(8),
+                    ],
+                  ),
+                  _buildInputField(
+                    _telefonoController,
+                    Icons.phone,
+                    'Teléfono',
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(9),
+                    ],
+                  ),
+                  _buildInputField(
+                    _direccionController,
+                    Icons.home,
+                    'Dirección',
+                    keyboardType: TextInputType.streetAddress,
+                  ),
+                  _buildInputField(
+                    _emailController,
+                    Icons.email,
+                    'Correo electrónico',
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  _buildInputField(
+                    _passwordController,
+                    Icons.lock,
+                    'Contraseña',
                     obscureText: true,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.lock),
-                      labelText: 'Contraseña',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
                   ),
                   SizedBox(height: 24),
                   ElevatedButton.icon(
@@ -157,6 +209,30 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputField(
+    TextEditingController controller,
+    IconData icon,
+    String label, {
+    bool obscureText = false,
+    TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextField(
+        controller: controller,
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
+        decoration: InputDecoration(
+          prefixIcon: Icon(icon),
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );

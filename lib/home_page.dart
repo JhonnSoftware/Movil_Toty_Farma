@@ -4,6 +4,7 @@ import '../pages/proveedores_page.dart';
 import '../pages/categorias_page.dart';
 import '../pages/productos_page.dart';
 import '../pages/tiendagps_page.dart';
+import '../pages/usuarios_page.dart';
 
 class HomePage extends StatefulWidget {
   final String? token;
@@ -24,7 +25,7 @@ class _HomePageState extends State<HomePage> {
     ProveedoresPage(),
     CategoriasPage(),
     ProductosScreen(),
-    Center(child: Text('Usuarios', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
+    UsuarioPage(),
     Center(child: Text('Flujo de caja', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
     Center(child: Text('Registrar Compra', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
     Center(child: Text('Historial Compras', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
@@ -105,6 +106,12 @@ class _HomePageState extends State<HomePage> {
                     selected: _selectedIndex == 5,
                   ),
                   _drawerListTile(
+                    icon: Icons.people_alt,
+                    title: 'Clientes',
+                    index: 1,
+                    selected: _selectedIndex == 1,
+                  ),
+                  _drawerListTile(
                     icon: Icons.attach_money,
                     title: 'Flujo de caja',
                     index: 6,
@@ -113,12 +120,6 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
 
-              _drawerListTile(
-                icon: Icons.people_alt,
-                title: 'Clientes',
-                index: 1,
-                selected: _selectedIndex == 1,
-              ),
               _drawerListTile(
                 icon: Icons.local_shipping,
                 title: 'Proveedores',
