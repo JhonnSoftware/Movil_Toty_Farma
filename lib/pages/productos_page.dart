@@ -133,6 +133,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
             title: Text(isEditando ? 'Editar Producto' : 'Agregar Producto'),
             content: SingleChildScrollView(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: codigoController,
@@ -143,29 +144,38 @@ class _ProductosScreenState extends State<ProductosScreen> {
                     controller: descripcionController,
                     decoration: const InputDecoration(labelText: 'Descripción'),
                   ),
-                  DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(labelText: 'Categoría'),
-                    value: categoriaSeleccionada.isNotEmpty ? categoriaSeleccionada : null,
-                    items: categorias
-                        .map((categoria) => DropdownMenuItem(value: categoria, child: Text(categoria)))
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setStateDialog(() => categoriaSeleccionada = value);
-                      }
-                    },
+                  // Envolver con SizedBox y usar isExpanded:true para evitar overflow
+                  SizedBox(
+                    width: double.infinity,
+                    child: DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(labelText: 'Categoría'),
+                      value: categoriaSeleccionada.isNotEmpty ? categoriaSeleccionada : null,
+                      isExpanded: true,
+                      items: categorias
+                          .map((categoria) => DropdownMenuItem(value: categoria, child: Text(categoria)))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setStateDialog(() => categoriaSeleccionada = value);
+                        }
+                      },
+                    ),
                   ),
-                  DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(labelText: 'Proveedor'),
-                    value: proveedorSeleccionado.isNotEmpty ? proveedorSeleccionado : null,
-                    items: proveedores
-                        .map((proveedor) => DropdownMenuItem(value: proveedor, child: Text(proveedor)))
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setStateDialog(() => proveedorSeleccionado = value);
-                      }
-                    },
+                  SizedBox(
+                    width: double.infinity,
+                    child: DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(labelText: 'Proveedor'),
+                      value: proveedorSeleccionado.isNotEmpty ? proveedorSeleccionado : null,
+                      isExpanded: true,
+                      items: proveedores
+                          .map((proveedor) => DropdownMenuItem(value: proveedor, child: Text(proveedor)))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setStateDialog(() => proveedorSeleccionado = value);
+                        }
+                      },
+                    ),
                   ),
                   TextField(
                     controller: laboratorioController,
@@ -301,37 +311,55 @@ class _ProductosScreenState extends State<ProductosScreen> {
         ),
       ),
       body: productosFiltrados.isEmpty
-          ? const Center(child: Text('No se encontraron productos'))
+          ? const Center(child: Text('No se encontraron productos.'))
           : ListView.builder(
               itemCount: productosFiltrados.length,
               itemBuilder: (context, index) {
                 final producto = productosFiltrados[index];
-                final urlImagenOriginal = producto['imagen'] as String? ?? '';
-                final urlImagenDirecta = convertirEnlaceDriveADirecto(urlImagenOriginal);
-
-                return ListTile(
-                  leading: urlImagenOriginal.isNotEmpty
-                      ? Image.network(
-                          urlImagenDirecta,
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
-                        )
-                      : const Icon(Icons.image_not_supported),
-                  title: Text(producto['descripcion'] ?? 'Sin nombre'),
-                  subtitle: Text(
-                      'S/ ${producto['precio_venta'] ?? 0.0} - Stock: ${producto['stock'] ?? 0} - Stock mínimo: ${producto['stock_minimo'] ?? 0}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  child: ListTile(
+                    leading: producto['imagen'] != null && producto['imagen'].toString().isNotEmpty
+                        ? Image.network(
+                            convertirEnlaceDriveADirecto(producto['imagen']),
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+                          )
+                        : const Icon(Icons.image_not_supported),
+                    title: Text(producto['descripcion'] ?? ''),
+                    subtitle: Text('Proveedor: ${producto['proveedor'] ?? ''}\n'
+                        'Categoría: ${producto['categoria'] ?? ''}'),
+                    trailing: Wrap(
+                      spacing: 8,
+                      children: [
+                        IconButton(
                           icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => mostrarFormulario(producto: producto)),
-                      IconButton(
+                          onPressed: () => mostrarFormulario(producto: producto),
+                        ),
+                        IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => eliminarProducto(producto['id'])),
-                    ],
+                          onPressed: () => showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Confirmar eliminación'),
+                              content: const Text('¿Estás seguro de eliminar este producto?'),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    eliminarProducto(producto['id']);
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text('Eliminar'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
