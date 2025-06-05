@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // <- para inputFormatters
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -135,16 +136,18 @@ class _ProductosScreenState extends State<ProductosScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Solo permite números enteros (0-9)
                   TextField(
                     controller: codigoController,
                     decoration: const InputDecoration(labelText: 'Código'),
                     keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
                   TextField(
                     controller: descripcionController,
                     decoration: const InputDecoration(labelText: 'Descripción'),
+                    keyboardType: TextInputType.text,
                   ),
-                  // Envolver con SizedBox y usar isExpanded:true para evitar overflow
                   SizedBox(
                     width: double.infinity,
                     child: DropdownButtonFormField<String>(
@@ -180,38 +183,54 @@ class _ProductosScreenState extends State<ProductosScreen> {
                   TextField(
                     controller: laboratorioController,
                     decoration: const InputDecoration(labelText: 'Laboratorio'),
+                    keyboardType: TextInputType.text,
                   ),
                   TextField(
                     controller: presentacionController,
                     decoration: const InputDecoration(labelText: 'Presentación'),
+                    keyboardType: TextInputType.text,
                   ),
                   TextField(
                     controller: fechaController,
                     decoration: const InputDecoration(labelText: 'Fecha de Vencimiento (YYYY-MM-DD)'),
+                    keyboardType: TextInputType.datetime,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[\d-]')), // solo números y guiones
+                    ],
                   ),
+                  // Permite números con punto decimal
                   TextField(
                     controller: precioCompraController,
                     decoration: const InputDecoration(labelText: 'Precio Compra'),
-                    keyboardType: TextInputType.number,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')), // números decimales con hasta 2 decimales
+                    ],
                   ),
                   TextField(
                     controller: precioVentaController,
                     decoration: const InputDecoration(labelText: 'Precio Venta'),
-                    keyboardType: TextInputType.number,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                    ],
                   ),
                   TextField(
                     controller: stockController,
                     decoration: const InputDecoration(labelText: 'Stock'),
                     keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
                   TextField(
                     controller: stockMinimoController,
                     decoration: const InputDecoration(labelText: 'Stock Mínimo'),
                     keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
                   TextField(
                     controller: imagenController,
                     decoration: const InputDecoration(labelText: 'Enlace de Imagen (Drive)'),
+                    keyboardType: TextInputType.url,
                   ),
                   SwitchListTile(
                     title: const Text('¿Activo?'),
@@ -261,7 +280,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                     print('Error al guardar producto: $e');
                   }
                 },
-                child: Text(isEditando ? 'Actualizar' : 'Agregar'),
+                child: const Text('Guardar'),
               ),
             ],
           );
@@ -271,99 +290,108 @@ class _ProductosScreenState extends State<ProductosScreen> {
   }
 
   Future<void> eliminarProducto(String id) async {
-    await FirebaseFirestore.instance.collection('productos').doc(id).delete();
-    obtenerProductos();
+    try {
+      await FirebaseFirestore.instance.collection('productos').doc(id).delete();
+      obtenerProductos();
+    } catch (e) {
+      print('Error al eliminar producto: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('CRUD de Productos'),
-        actions: [
-          IconButton(icon: const Icon(Icons.add), onPressed: () => mostrarFormulario()),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        title: const Text('Gestión de Productos'),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8),
             child: TextField(
               controller: busquedaController,
-              decoration: InputDecoration(
-                hintText: 'Buscar por descripción...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: busquedaController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          busquedaController.clear();
-                          filtrarProductos('');
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+              decoration: const InputDecoration(
+                labelText: 'Buscar por descripción',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
               ),
               onChanged: filtrarProductos,
             ),
           ),
-        ),
-      ),
-      body: productosFiltrados.isEmpty
-          ? const Center(child: Text('No se encontraron productos.'))
-          : ListView.builder(
-              itemCount: productosFiltrados.length,
-              itemBuilder: (context, index) {
-                final producto = productosFiltrados[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: ListTile(
-                    leading: producto['imagen'] != null && producto['imagen'].toString().isNotEmpty
-                        ? Image.network(
-                            convertirEnlaceDriveADirecto(producto['imagen']),
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
-                          )
-                        : const Icon(Icons.image_not_supported),
-                    title: Text(producto['descripcion'] ?? ''),
-                    subtitle: Text('Proveedor: ${producto['proveedor'] ?? ''}\n'
-                        'Categoría: ${producto['categoria'] ?? ''}'),
-                    trailing: Wrap(
-                      spacing: 8,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => mostrarFormulario(producto: producto),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Confirmar eliminación'),
-                              content: const Text('¿Estás seguro de eliminar este producto?'),
-                              actions: [
-                                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    eliminarProducto(producto['id']);
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text('Eliminar'),
+          Expanded(
+            child: productosFiltrados.isEmpty
+                ? const Center(child: Text('No hay productos'))
+                : ListView.builder(
+                    itemCount: productosFiltrados.length,
+                    itemBuilder: (context, index) {
+                      final producto = productosFiltrados[index];
+                      final urlImagen = convertirEnlaceDriveADirecto(producto['imagen'] ?? '');
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: ListTile(
+                          leading: (producto['imagen'] != null && producto['imagen'] != '')
+                              ? Image.network(
+                                  urlImagen,
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
+                                )
+                              : const Icon(Icons.image_not_supported, size: 60),
+                          title: Text(
+                            producto['descripcion'] ?? '',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Categoría: ${producto['categoria'] ?? 'N/A'}'),
+                              Text('Proveedor: ${producto['proveedor'] ?? 'N/A'}'),
+                              Text('Stock: ${producto['stock'] ?? 0}'),
+                              Text('Precio venta: S/ ${producto['precio_venta']?.toStringAsFixed(2) ?? '0.00'}'),
+                            ],
+                          ),
+                          trailing: Wrap(
+                            spacing: 10,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () => mostrarFormulario(producto: producto),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    title: const Text('Confirmar eliminación'),
+                                    content: Text('¿Eliminar producto "${producto['descripcion']}"?'),
+                                    actions: [
+                                      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          eliminarProducto(producto['id']);
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('Eliminar'),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => mostrarFormulario(),
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }

@@ -5,6 +5,8 @@ import '../pages/categorias_page.dart';
 import '../pages/productos_page.dart';
 import '../pages/tiendagps_page.dart';
 import '../pages/usuarios_page.dart';
+import '../pages/inicio_page.dart';
+import 'login_page.dart';  // Importa tu LoginPage aquí
 
 class HomePage extends StatefulWidget {
   final String? token;
@@ -19,8 +21,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   static List<Widget> _pages = <Widget>[
-    Center(child: Text('Inicio', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
-    //ClientesPage(),
+    InicioPage(),
     ClientesPage(),
     ProveedoresPage(),
     CategoriasPage(),
@@ -40,15 +41,18 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  final Color verdeLima = Color(0xFF7eda01);
-  final Color azul = Color(0xFF1489b4);
-  final Color fondoDrawer = Color(0xFFF7F9FC);
+  // Nueva paleta de colores
+  final Color verdeOscuro = Color(0xFF6EBF49);
+  final Color verdeClaro = Color(0xFF8BBF65);
+  final Color azulOscuro = Color(0xFF0A7ABF);
+  final Color azulClaro = Color(0xFF25A6D9);
+  final Color fondoDrawer = Color(0xFFF2F2F2);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: verdeLima,
+        backgroundColor: verdeOscuro,
         title: Text(
           'Menú Principal',
           style: TextStyle(
@@ -58,7 +62,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         elevation: 6,
-        shadowColor: azul.withOpacity(0.5),
+        shadowColor: azulOscuro.withOpacity(0.5),
       ),
       drawer: Drawer(
         child: Container(
@@ -69,7 +73,7 @@ class _HomePageState extends State<HomePage> {
               UserAccountsDrawerHeader(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [verdeLima, azul],
+                    colors: [verdeOscuro, azulClaro],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -84,7 +88,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 currentAccountPicture: CircleAvatar(
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 50, color: verdeLima),
+                  child: Icon(Icons.person, size: 50, color: verdeOscuro),
                 ),
               ),
 
@@ -186,19 +190,22 @@ class _HomePageState extends State<HomePage> {
 
               Divider(thickness: 1.2),
               ListTile(
-                leading: Icon(Icons.logout, color: azul),
+                leading: Icon(Icons.logout, color: azulOscuro),
                 title: Text(
                   'Cerrar sesión',
                   style: TextStyle(
-                    color: azul,
+                    color: azulOscuro,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushReplacementNamed(context, '/login');
+                  Navigator.pop(context); // cierra el drawer
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
                 },
-                hoverColor: verdeLima.withOpacity(0.3),
+                hoverColor: verdeClaro.withOpacity(0.3),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -221,23 +228,23 @@ class _HomePageState extends State<HomePage> {
     required bool selected,
   }) {
     return ListTile(
-      leading: Icon(icon, color: selected ? azul : Colors.grey[700]),
+      leading: Icon(icon, color: selected ? azulOscuro : Colors.grey[700]),
       title: Text(
         title,
         style: TextStyle(
           fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-          color: selected ? azul : Colors.black87,
+          color: selected ? azulOscuro : Colors.black87,
           fontSize: 16,
         ),
       ),
       selected: selected,
-      selectedTileColor: azul.withOpacity(0.15),
+      selectedTileColor: azulOscuro.withOpacity(0.15),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       onTap: () {
         _onItemTapped(index);
         Navigator.pop(context);
       },
-      hoverColor: azul.withOpacity(0.1),
+      hoverColor: azulOscuro.withOpacity(0.1),
       contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
     );
   }
@@ -250,20 +257,20 @@ class _HomePageState extends State<HomePage> {
     return Theme(
       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
-        leading: Icon(icon, color: azul),
+        leading: Icon(icon, color: azulOscuro),
         title: Text(
           title,
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: azul,
+            color: azulOscuro,
             fontSize: 16,
           ),
         ),
         childrenPadding: EdgeInsets.only(left: 20, bottom: 5),
         tilePadding: EdgeInsets.symmetric(horizontal: 16),
         children: children,
-        iconColor: verdeLima,
-        collapsedIconColor: azul,
+        iconColor: verdeClaro,
+        collapsedIconColor: azulOscuro,
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
         maintainState: true,
       ),

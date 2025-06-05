@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'login_page.dart'; // Página de login
 import 'usuarios_pages/usuarios_productos.dart'; // Página de productos
 import 'usuarios_pages/usuarios_carrito.dart'; // Página de carrito
+import 'usuarios_pages/usuarios_perfil.dart'; // Página de perfil
 
 class UsuarioMenuPage extends StatefulWidget {
   final String token; // Token o userId para identificar al usuario
@@ -16,33 +17,28 @@ class _UsuarioMenuPageState extends State<UsuarioMenuPage> {
 
   late List<Widget> _pages;
 
-  final Color verdeLima = Color(0xFF7eda01);
-  final Color azul = Color(0xFF1489b4);
+  final Color verdeLima = const Color(0xFF7eda01);
+  final Color azul = const Color(0xFF1489b4);
 
   @override
   void initState() {
     super.initState();
     _pages = <Widget>[
-      UsuariosProductosPage(userId: widget.token),  // <-- Aquí pasamos userId
-      UsuariosCarritoPage(userId: widget.token),    // <-- Aquí también
+      UsuariosProductosPage(userId: widget.token),  // Página de productos
+      UsuariosCarritoPage(userId: widget.token),    // Página de carrito
       Center(
         child: Text(
           'Historial de Pedidos',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
       ),
-      Center(
-        child: Text(
-          'Perfil de Usuario',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-      ),
+      UsuarioPerfilPage(userId: widget.token),       // Página de perfil
     ];
   }
 
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index; // Cambiamos la página activa
+      _selectedIndex = index;
     });
   }
 
@@ -51,16 +47,15 @@ class _UsuarioMenuPageState extends State<UsuarioMenuPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: verdeLima,
-        title: Text(
+        title: const Text(
           'Botica - Usuario',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
             tooltip: 'Cerrar sesión',
             onPressed: () {
-              // Volver al login y limpiar el historial de navegación
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => LoginPage()),
@@ -70,7 +65,7 @@ class _UsuarioMenuPageState extends State<UsuarioMenuPage> {
         ],
       ),
       body: AnimatedSwitcher(
-        duration: Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 300),
         child: _pages[_selectedIndex],
       ),
       bottomNavigationBar: BottomNavigationBar(

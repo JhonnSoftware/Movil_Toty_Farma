@@ -111,7 +111,7 @@ class _TiendaGpsPageState extends State<TiendaGpsPage> {
           polylines = {
             Polyline(
               polylineId: const PolylineId("ruta"),
-              color: Colors.blue,
+              color: const Color.fromARGB(255, 32, 233, 38),
               width: 5,
               points: ruta,
             ),

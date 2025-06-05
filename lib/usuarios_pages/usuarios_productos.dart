@@ -16,6 +16,9 @@ class _UsuariosProductosPageState extends State<UsuariosProductosPage> {
 
   final carritoRef = FirebaseFirestore.instance.collection('carritos');
 
+  List<String?> categorias = [];
+  List<String?> laboratorios = [];
+
   String getImagenDriveUrl(String urlOriginal) {
     final regex = RegExp(r'd/([^/]+)');
     final match = regex.firstMatch(urlOriginal);
@@ -29,9 +32,7 @@ class _UsuariosProductosPageState extends State<UsuariosProductosPage> {
   Future<void> agregarAlCarrito(Map<String, dynamic> producto) async {
     final userCarritoDoc = carritoRef.doc(widget.userId);
     final productosSubcoleccion = userCarritoDoc.collection('productos');
-
     final productoDoc = productosSubcoleccion.doc(producto['id'] ?? producto['descripcion']);
-
     final docSnapshot = await productoDoc.get();
 
     int nuevaCantidad = 1;
@@ -54,6 +55,7 @@ class _UsuariosProductosPageState extends State<UsuariosProductosPage> {
       'subtotal': nuevoSubtotal,
     });
 
+    // Actualiza totales en documento principal del carrito
     final carritoSnapshot = await userCarritoDoc.get();
     int totalItems = 0;
     double totalPrecio = 0;
@@ -87,7 +89,7 @@ class _UsuariosProductosPageState extends State<UsuariosProductosPage> {
           TextButton(
             child: Text('Agregar'),
             onPressed: () {
-              Navigator.pop(dialogContext); // Cierra primero el diálogo
+              Navigator.pop(dialogContext);
               agregarAlCarrito(producto).then((_) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -102,112 +104,168 @@ class _UsuariosProductosPageState extends State<UsuariosProductosPage> {
     );
   }
 
+  Widget buildFiltros() {
+    return Padding(
+      padding: const EdgeInsets.all(10),
+      child: Column(
+        children: [
+          TextField(
+            decoration: InputDecoration(
+              hintText: 'Buscar por nombre...',
+              prefixIcon: Icon(Icons.search),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onChanged: (value) {
+              setState(() {
+                searchQuery = value;
+              });
+            },
+          ),
+          SizedBox(height: 10),
+          DropdownButtonFormField<String>(
+            value: selectedCategoria,
+            decoration: InputDecoration(
+              labelText: 'Categoría',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            items: [null, ...categorias].map((cat) {
+              return DropdownMenuItem<String>(
+                value: cat,
+                child: Text(cat ?? 'Todas'),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedCategoria = value;
+              });
+            },
+          ),
+          SizedBox(height: 10),
+          DropdownButtonFormField<String>(
+            value: selectedLaboratorio,
+            decoration: InputDecoration(
+              labelText: 'Laboratorio',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            items: [null, ...laboratorios].map((lab) {
+              return DropdownMenuItem<String>(
+                value: lab,
+                child: Text(lab ?? 'Todos'),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedLaboratorio = value;
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Catálogo de Productos')),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('productos').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error al cargar productos'));
-          }
+      appBar: AppBar(
+        title: Text('Catálogo de Productos'),
+        actions: [
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('carritos')
+                .doc(widget.userId)
+                .collection('productos')
+                .snapshots(),
+            builder: (context, snapshot) {
+              int total = 0;
+              if (snapshot.hasData) {
+                total = snapshot.data!.docs.fold(0, (sum, doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  return sum + ((data['cantidad'] ?? 1) as int);
+                });
+              }
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-
-          final allProductos = snapshot.data!.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            data['id'] = doc.id;
-            return data;
-          }).toList();
-
-          final categorias = allProductos
-              .map((e) => e['categoria']?.toString())
-              .where((e) => e != null && e.isNotEmpty)
-              .toSet()
-              .toList();
-
-          final laboratorios = allProductos
-              .map((e) => e['laboratorio']?.toString())
-              .where((e) => e != null && e.isNotEmpty)
-              .toSet()
-              .toList();
-
-          final productosFiltrados = allProductos.where((producto) {
-            final nombre = producto['descripcion']?.toString().toLowerCase() ?? '';
-            final categoria = producto['categoria']?.toString();
-            final laboratorio = producto['laboratorio']?.toString();
-
-            final coincideBusqueda = nombre.contains(searchQuery.toLowerCase());
-            final coincideCategoria = selectedCategoria == null || selectedCategoria == categoria;
-            final coincideLaboratorio = selectedLaboratorio == null || selectedLaboratorio == laboratorio;
-
-            return coincideBusqueda && coincideCategoria && coincideLaboratorio;
-          }).toList();
-
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  children: [
-                    TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Buscar por nombre...',
-                        prefixIcon: Icon(Icons.search),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.shopping_cart),
+                    onPressed: () {
+                      // Aquí puedes navegar al carrito si tienes una pantalla
+                    },
+                  ),
+                  if (total > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '$total',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
-                      onChanged: (value) {
-                        setState(() {
-                          searchQuery = value;
-                        });
-                      },
                     ),
-                    SizedBox(height: 10),
-                    DropdownButtonFormField<String>(
-                      value: selectedCategoria,
-                      decoration: InputDecoration(
-                        labelText: 'Categoría',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      items: [null, ...categorias].map((cat) {
-                        return DropdownMenuItem<String>(
-                          value: cat,
-                          child: Text(cat ?? 'Todas'),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedCategoria = value;
-                        });
-                      },
-                    ),
-                    SizedBox(height: 10),
-                    DropdownButtonFormField<String>(
-                      value: selectedLaboratorio,
-                      decoration: InputDecoration(
-                        labelText: 'Laboratorio',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      items: [null, ...laboratorios].map((lab) {
-                        return DropdownMenuItem<String>(
-                          value: lab,
-                          child: Text(lab ?? 'Todos'),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedLaboratorio = value;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: productosFiltrados.isEmpty
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          buildFiltros(),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('productos').snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error al cargar productos'));
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                final allProductos = snapshot.data!.docs.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  data['id'] = doc.id;
+                  return data;
+                }).toList();
+
+                // Actualizar listas de categorías y laboratorios
+                categorias = allProductos
+                    .map((e) => e['categoria']?.toString())
+                    .where((e) => e != null && e.isNotEmpty)
+                    .toSet()
+                    .toList();
+
+                laboratorios = allProductos
+                    .map((e) => e['laboratorio']?.toString())
+                    .where((e) => e != null && e.isNotEmpty)
+                    .toSet()
+                    .toList();
+
+                final productosFiltrados = allProductos.where((producto) {
+                  final nombre = producto['descripcion']?.toString().toLowerCase() ?? '';
+                  final categoria = producto['categoria']?.toString();
+                  final laboratorio = producto['laboratorio']?.toString();
+
+                  final coincideBusqueda = nombre.contains(searchQuery.toLowerCase());
+                  final coincideCategoria = selectedCategoria == null || selectedCategoria == categoria;
+                  final coincideLaboratorio = selectedLaboratorio == null || selectedLaboratorio == laboratorio;
+
+                  return coincideBusqueda && coincideCategoria && coincideLaboratorio;
+                }).toList();
+
+                return productosFiltrados.isEmpty
                     ? Center(child: Text('No se encontraron productos'))
                     : GridView.builder(
                         padding: EdgeInsets.all(10),
@@ -272,11 +330,11 @@ class _UsuariosProductosPageState extends State<UsuariosProductosPage> {
                             ),
                           );
                         },
-                      ),
-              ),
-            ],
-          );
-        },
+                      );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
