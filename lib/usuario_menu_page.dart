@@ -3,6 +3,7 @@ import 'login_page.dart'; // Página de login
 import 'usuarios_pages/usuarios_productos.dart'; // Página de productos
 import 'usuarios_pages/usuarios_carrito.dart'; // Página de carrito
 import 'usuarios_pages/usuarios_perfil.dart'; // Página de perfil
+import 'usuarios_pages/historial_pedidos.dart'; // Página de historial pedidos
 
 class UsuarioMenuPage extends StatefulWidget {
   final String token; // Token o userId para identificar al usuario
@@ -26,13 +27,8 @@ class _UsuarioMenuPageState extends State<UsuarioMenuPage> {
     _pages = <Widget>[
       UsuariosProductosPage(userId: widget.token),  // Página de productos
       UsuariosCarritoPage(userId: widget.token),    // Página de carrito
-      Center(
-        child: Text(
-          'Historial de Pedidos',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-      ),
-      UsuarioPerfilPage(userId: widget.token),       // Página de perfil
+      HistorialPedidosPage(userId: widget.token),   // Página de historial real
+      UsuarioPerfilPage(userId: widget.token),      // Página de perfil
     ];
   }
 

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'usuarios_carrito.dart';  // Importa la pantalla del carrito
 
 class UsuariosProductosPage extends StatefulWidget {
   final String userId;
@@ -191,7 +192,12 @@ class _UsuariosProductosPageState extends State<UsuariosProductosPage> {
                   IconButton(
                     icon: Icon(Icons.shopping_cart),
                     onPressed: () {
-                      // Aquí puedes navegar al carrito si tienes una pantalla
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UsuariosCarritoPage(userId: widget.userId),
+                        ),
+                      );
                     },
                   ),
                   if (total > 0)
@@ -294,36 +300,46 @@ class _UsuariosProductosPageState extends State<UsuariosProductosPage> {
                                     child: Image.network(
                                       imagenUrl,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) =>
-                                          Icon(Icons.broken_image, size: 60),
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Center(child: Icon(Icons.broken_image));
+                                      },
                                     ),
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.all(8.0),
+                                  padding: EdgeInsets.all(8),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         producto['descripcion'] ?? '',
-                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       SizedBox(height: 4),
                                       Text(
-                                        'S/. ${producto['precio_venta']}',
-                                        style: TextStyle(color: Colors.green[700]),
+                                        'Precio: S/. ${producto['precio_venta'] ?? '0'}',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.green[700],
+                                        ),
                                       ),
-                                      Text('Stock: ${producto['stock']}'),
+                                      SizedBox(height: 4),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: IconButton(
+                                          icon: Icon(Icons.add_shopping_cart),
+                                          tooltip: 'Agregar al carrito',
+                                          onPressed: () {
+                                            mostrarConfirmacion(producto);
+                                          },
+                                        ),
+                                      ),
                                     ],
-                                  ),
-                                ),
-                                Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: IconButton(
-                                    icon: Icon(Icons.add_shopping_cart, color: Colors.green),
-                                    onPressed: () => mostrarConfirmacion(producto),
                                   ),
                                 ),
                               ],
