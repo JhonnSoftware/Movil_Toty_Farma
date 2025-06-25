@@ -11,7 +11,6 @@ class CategoriasPage extends StatefulWidget {
 class _CategoriasPageState extends State<CategoriasPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final List<String> _seleccionadas = [];
-
   final TextEditingController _nombreController = TextEditingController();
 
   void _mostrarMensaje(String mensaje) {
@@ -105,7 +104,17 @@ class _CategoriasPageState extends State<CategoriasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestión de Categorías'),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/icon.png',
+              height: 35,
+              width: 35,
+            ),
+            const SizedBox(width: 8),
+            const Text('Categorías'),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete),

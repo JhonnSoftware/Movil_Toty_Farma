@@ -1,13 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as path;
+import '../usuarios_pages/gpsusuario_page.dart'; // ← Ajusta este import al path correcto
 
 class UsuarioPerfilPage extends StatefulWidget {
-  final String userId; // Será el "name"
+  final String userId;
 
   const UsuarioPerfilPage({Key? key, required this.userId}) : super(key: key);
 
@@ -70,14 +70,26 @@ class _UsuarioPerfilPageState extends State<UsuarioPerfilPage> {
       );
 
       if (pickedFile != null) {
-        setState(() {
-          _selectedImageFile = File(pickedFile.path);
-        });
+        final file = File(pickedFile.path);
+        final fileExists = await file.exists();
+        final fileLength = await file.length();
 
-        _showPreviewDialog();
+        if (fileExists && fileLength > 0) {
+          setState(() {
+            _selectedImageFile = file;
+          });
+          _showPreviewDialog();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Archivo inválido o vacío.')),
+          );
+        }
       }
     } catch (e) {
       print('Error al seleccionar imagen: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al seleccionar imagen')),
+      );
     }
   }
 
@@ -101,7 +113,7 @@ class _UsuarioPerfilPageState extends State<UsuarioPerfilPage> {
           TextButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              await _uploadImageAndSave();
+              await _uploadImageAsBase64AndSave();
             },
             child: const Text('Aceptar'),
           ),
@@ -110,24 +122,25 @@ class _UsuarioPerfilPageState extends State<UsuarioPerfilPage> {
     );
   }
 
-  Future<void> _uploadImageAndSave() async {
+  Future<void> _uploadImageAsBase64AndSave() async {
     if (_selectedImageFile == null || userData == null) return;
+
+    final fileExists = await _selectedImageFile!.exists();
+    final fileLength = await _selectedImageFile!.length();
+
+    if (!fileExists || fileLength == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('El archivo de imagen no es válido.')),
+      );
+      return;
+    }
 
     setState(() => loading = true);
 
     try {
-      final fileName = path.basename(_selectedImageFile!.path);
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('profile_images')
-          .child('${widget.userId}_$fileName');
+      final bytes = await _selectedImageFile!.readAsBytes();
+      final base64Image = base64Encode(bytes);
 
-      final uploadTask = storageRef.putFile(_selectedImageFile!);
-      final snapshot = await uploadTask;
-
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-
-      // Actualizar Firestore
       final userDoc = await FirebaseFirestore.instance
           .collection('usuarios')
           .where('name', isEqualTo: widget.userId)
@@ -138,9 +151,8 @@ class _UsuarioPerfilPageState extends State<UsuarioPerfilPage> {
         await FirebaseFirestore.instance
             .collection('usuarios')
             .doc(userDoc.docs.first.id)
-            .update({'foto': downloadUrl});
+            .update({'foto': base64Image});
 
-        // Refrescar datos localmente
         await _loadUserData();
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -190,8 +202,8 @@ class _UsuarioPerfilPageState extends State<UsuarioPerfilPage> {
             CircleAvatar(
               radius: 60,
               backgroundImage: userData!['foto'] != null && userData!['foto'].isNotEmpty
-                  ? NetworkImage(userData!['foto'])
-                  : NetworkImage('https://i.pravatar.cc/150?u=${widget.userId}'),
+                  ? MemoryImage(base64Decode(userData!['foto']))
+                  : NetworkImage('https://i.pravatar.cc/150?u=${widget.userId}') as ImageProvider,
             ),
             const SizedBox(height: 12),
             ElevatedButton.icon(
@@ -251,6 +263,23 @@ class _UsuarioPerfilPageState extends State<UsuarioPerfilPage> {
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Funcionalidad de edición aún no implementada')),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.location_on),
+              label: const Text('Ver GPS de Tienda'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: verdeLima,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TiendaGpsPage()),
                 );
               },
             ),

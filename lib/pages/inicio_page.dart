@@ -123,27 +123,37 @@ class _InicioPageState extends State<InicioPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Colores personalizados
-    final Color colorAdmin = const Color(0xFF0A7ABF);       // Azul principal
-    final Color colorUsuarios = const Color(0xFF25A6D9);    // Azul claro
-    final Color colorCategorias = const Color(0xFF6EBF49);  // Verde fuerte
-    final Color colorProveedores = const Color(0xFF8BBF65); // Verde suave
-    final Color colorProductos = const Color(0xFFF2F2F2);   // Fondo claro (usado como color base suave)
+    final Color colorAdmin = const Color(0xFF0A7ABF);
+    final Color colorUsuarios = const Color(0xFF25A6D9);
+    final Color colorCategorias = const Color(0xFF6EBF49);
+    final Color colorProveedores = const Color(0xFF8BBF65);
+    final Color colorProductos = const Color(0xFFF2F2F2);
     final Color fondo = const Color(0xFFF2F2F2);
 
     return Scaffold(
       backgroundColor: fondo,
       appBar: AppBar(
         backgroundColor: colorAdmin,
-        title: Text(
-          'Dashboard',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: true,
         elevation: 5,
+        centerTitle: true,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/images/icon.png', // Aquí va tu logo
+              width: 30,
+              height: 30,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Dashboard',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -185,7 +195,6 @@ class _InicioPageState extends State<InicioPage> {
                     icon: Icons.medical_services,
                     color: colorProductos.darken(0.2),
                   ),
-
                   const SizedBox(height: 50),
                 ],
               ),

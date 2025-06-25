@@ -194,7 +194,16 @@ class _ProveedoresPageState extends State<ProveedoresPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestión de Proveedores'),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/icon.png',
+              height: 40,
+            ),
+            const SizedBox(width: 10),
+            const Text('Gestión de Proveedores'),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete),

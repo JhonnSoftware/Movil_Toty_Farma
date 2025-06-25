@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart'; // 👈 Para detectar si es Web
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home_page.dart';
 import 'register_page.dart';
-import 'usuario_menu_page.dart'; // Asegúrate de crear esta vista o importarla correctamente
+import 'usuario_menu_page.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -135,18 +136,22 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: _login,
                       ),
                       SizedBox(height: 16),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterPage()));
-                        },
-                        child: Text(
-                          '¿No tienes cuenta? Regístrate aquí',
-                          style: TextStyle(
-                            color: fondo,
-                            fontWeight: FontWeight.w600,
+
+                      // Mostrar solo si NO es Web
+                      if (!kIsWeb)
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterPage()));
+                          },
+                          child: Text(
+                            '¿No tienes cuenta? Regístrate aquí',
+                            style: TextStyle(
+                              color: fondo,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
+
                       if (_errorMessage.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.all(8.0),
